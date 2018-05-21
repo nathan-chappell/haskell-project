@@ -183,7 +183,7 @@ totalFlow (FlowGraph s t adj flow) = outs -- - ins
 --Making the data structures for the algorithm
 
 fedgesForConn :: [Edge] -> [FEdge]
-fedgesForConn edges = foldl (\acc (u,v) -> (u,v,1):(v,u,1):acc) [] edges
+fedgesForConn edges = nub $ foldl (\acc (u,v) -> (u,v,1):(v,u,1):acc) [] edges
 
 flowGraphForConn :: NodeId -> NodeId -> [FEdge] -> FlowGraph
 flowGraphForConn s t fedges = FlowGraph s t (adjFromFEdges fedges) (fPropsFromFEdges fedges)
@@ -218,20 +218,4 @@ main = do
                "-f" -> maximizeFromFile fname
                "-c" -> ctestFromFile fname
                _ -> putStrLn "usage:\n -f filename for flow analysis\n -c filename for connectivity test"
-
-
-{-
-Testing stuff
--}
-
-fedges = [(1,2,16), (1,4,13), (2,3,12), (3,4,9), (3,6,20), (4,2,4), (4,5,14), (5,6,4)]
-fedges2 = [(1,2,20), (1,3,4), (2,3,10), (3,2,8), (2,1,7), (3,4,25), (2,4,8)] :: [(Int,Int,Int)]
-
-k3 = [(1,2), (2,3), (3,1)] :: [(Int,Int)]
-k4 = [(1,2), (1,3), (1,4), (2,3), (2,4), (3,4)] :: [(Int,Int)]
-wheel = [(1,2), (2,3), (3,4), (4,5), (5,1), (1,6), (2,6), (3,6), (4,6), (5,6)] :: [(Int,Int)]
-  
-adj = adjFromFEdges fedges
-props = fPropsFromFEdges fedges
-fgraph = FlowGraph 1 6 adj props
 
