@@ -1,0 +1,37 @@
+This is a haskell implemenation of the Edmonds-Karp max-flow algorithm (see: https://en.wikipedia.org/wiki/Edmonds-Karp_algorithm for more information).  The usage is as follows:
+
+./flow (-f -c) filename
+
+The program takes as input an option and filename, and then executes either the maximum flow algorithm, or uses the maximum flow algorithm to test the vertex connectivity of the graph.
+
+  -f Maximum Flow.  This option reads the graph as described under "max flow format" and determine a (not necessarily unique) set of values for flow along edges corresponding to a max-flow, and print the results to standard output.
+  
+  -c Connectivity.  This option reads the graph as described under "connectivity format" and outputs the calculated vertex connectivity to standard output.
+  
+This program does not expect very large graphs as input, as it would not likely be very useful for large graphs anyways (time complexity is O(V^8) for -c and space is O(E+V) with a non-trivial coefficient).  The implementation actually expects that there will not be too many vertices, and uses vertices labled 10000 and higher for internal purposes (see the formats for more information).  The Connectivity algorithm proceeds roughly as follows: an undirected graph is expected on input, which is then transformed into a new graph with each vertex "expanded."  This means that each vertex is turned into an edge and two new vertices, such that contracting this edge and removing parallel edges would result in the original graph.  At this point, each edge is doubled and given a capacity of 1, and the maximum flow algorithm is run on each pair of vertices from the original graph.  A "maximum" flow in this graph corresponds to the maximum number of vertex independent paths from one vertex to the other (this is because to get from one "side" of a vertex to the other, the entire capacity must be used).  Then, the minimal value of "max-flow" between all vertices is the vertex connectivity.
+
+  Max Flow Format
+  The input format for the max-flow option is as follows:
+
+start-label terminal-label
+vertex-label vertex-label capacity
+vertex-label vertex-label capacity
+vertex-label vertex-label capacity
+...
+
+Each label should be an integer between 0 and 1000, and each capacity should be an integer (< 2^31).
+
+  Connectivity Format
+  The input for the connectivity option is as follows:
+
+vertex-label vertex-label
+vertex-label vertex-label
+vertex-label vertex-label
+...
+
+Each label should be an integer between 0 and 1000.  These are the edges of the graph, which is assumed to be undirected for this application.  If a duplicate edges are included they will be ignored (they are nubbed out).
+
+If you have any problems, questions, comments, concerns, bitches, gripes, complaints, or just want to say hi, please email: nathan.s.chappell@gmail.com, and I will respond to you if I feel like it.
+
+Sincerely,
+Nathan Chappell
