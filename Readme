@@ -1,3 +1,9 @@
+--UPDATES
+
+The previous implementation needed correction, and now there is the added requirement that vertex labels be greater than 0.  The previous max-connectivity algorithm was incorrect, and now uses negative-labeled vertices for internal use.
+
+--
+
 This is a haskell implemenation of the Edmonds-Karp max-flow algorithm (see: https://en.wikipedia.org/wiki/Edmonds-Karp_algorithm for more information).  The usage is as follows:
 
 ./flow (-f -c) filename
@@ -19,7 +25,7 @@ vertex-label vertex-label capacity
 vertex-label vertex-label capacity
 ...
 
-Each label should be an integer between 0 and 1000, and each capacity should be an integer (< 2^31).
+Each label should be an integer between 1 and 1000, and each capacity should be an integer (< 2^31).
 
   Connectivity Format
   The input for the connectivity option is as follows:
@@ -29,7 +35,7 @@ vertex-label vertex-label
 vertex-label vertex-label
 ...
 
-Each label should be an integer between 0 and 1000.  These are the edges of the graph, which is assumed to be undirected for this application.  If a duplicate edges are included they will be ignored (they are nubbed out).
+Each label should be an integer between 1 and 1000.  These are the edges of the graph, which is assumed to be undirected for this application.  If a duplicate edges are included they will be ignored (they are nubbed out).
 
 If you have any problems, questions, comments, concerns, bitches, gripes, complaints, or just want to say hi, please email: nathan.s.chappell@gmail.com, and I will respond to you if I feel like it.
 

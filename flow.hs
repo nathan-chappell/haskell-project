@@ -20,6 +20,15 @@ data FlowGraph = FlowGraph {
   } deriving (Show)
 data FlowSystem = FlowSystem { graph :: FlowGraph, residual :: FlowGraph }
 
+--Deubugging
+
+printProps :: FlowGraph -> IO ()
+printProps fg = putStr $ foldl (\acc x -> acc ++ (show x) ++ "\n") "" (M.toList $ flowProps fg)
+
+printAdj :: FlowGraph -> IO ()
+printAdj fg = putStr $ foldl (\acc x -> acc ++ (show x) ++ "\n") "" (M.toList $ adjList fg)
+--
+
 --Creating the data structures
 
 --Adjacency list
@@ -61,6 +70,7 @@ vertices adj = foldl union [] (map (\(n, ns) -> n:ns) $ M.toList adj)
 --Shortest Path algorithm for Edmonds-Karp
 
 type ShortestPathUpdateAcc = ([NodeId], M.Map NodeId NodeId, AdjList)
+
 shortestPathUpdate :: ShortestPathUpdateAcc -> NodeId -> ShortestPathUpdateAcc
 shortestPathUpdate (q, prevMap, g) u =
   let neighbours = filter (\x -> not $ M.member x prevMap) $ g M.! u in
@@ -68,7 +78,7 @@ shortestPathUpdate (q, prevMap, g) u =
     (q, prevMap, g) neighbours
 
 getPath :: NodeId -> M.Map NodeId NodeId -> [Edge]
-getPath (-1) prevMap = []
+getPath (-10000000) prevMap = []
 getPath t prevMap = (prev,t) : (getPath prev prevMap)
   where prev = prevMap M.! t 
 
@@ -80,7 +90,7 @@ shortestPath' t (q, prevMap, g)
 
 shortestPath :: NodeId -> NodeId -> AdjList -> [Edge]
 shortestPath s t adj =
-  filter (\(u,v) -> u /= (-1)) $ shortestPath' t ([s], M.singleton s (-1), adj)
+  filter (\(u,v) -> u /= (-10000000)) $ shortestPath' t ([s], M.singleton s (-10000000), adj)
 
 --Epsilon is the largest allowable increment on the shortest path
 
@@ -101,6 +111,10 @@ formatMaxFlow fedges =
   foldl (\acc (u,v,c) -> if (elem (v,u) $ map (\(u',v',_) -> (u',v')) acc)
                          then (u,v+u*10000,c):(v+u*10000,v,c):acc else (u,v,c):acc)
   [] fedges
+
+--last stage of preparation...
+--formatMaxConn :: [FEdge] -> [FEdge]
+--formatMaxConn fedges = 
 
 deformatFolder :: [(Edge,(Int,Int))] -> (Edge,(Int,Int)) -> [(Edge,(Int,Int))]
 deformatFolder acc ((u,v),(f,c))
@@ -182,8 +196,11 @@ totalFlow (FlowGraph s t adj flow) = outs -- - ins
 
 --Making the data structures for the algorithm
 
-fedgesForConn :: [Edge] -> [FEdge]
-fedgesForConn edges = nub $ foldl (\acc (u,v) -> (u,v,1):(v,u,1):acc) [] edges
+
+fedgesForConn ::[Edge] -> [FEdge]
+fedgesForConn edges = nub $ 
+  foldl (\acc (x,y) -> (x,y,1):acc) [] $ 
+    foldl (\acc (x,y) -> (x,(-1)*y):(y,(-1)*x):((-1)*x,x):((-1)*y,y):acc) [] edges
 
 flowGraphForConn :: NodeId -> NodeId -> [FEdge] -> FlowGraph
 flowGraphForConn s t fedges = FlowGraph s t (adjFromFEdges fedges) (fPropsFromFEdges fedges)
@@ -191,13 +208,13 @@ flowGraphForConn s t fedges = FlowGraph s t (adjFromFEdges fedges) (fPropsFromFE
 connectivityTest' :: NodeId -> NodeId -> [FEdge] -> Int
 connectivityTest' s t fedges = totalFlow $ maximizeFlow $ flowGraphForConn s t fedges
 
+
 connectivityTest :: [Edge] -> Int
-connectivityTest edges = maximum flows
-  where fedges = formatMaxFlow $ fedgesForConn edges
-        verts = nub $ (fst $ unzip edges) ++ (snd $ unzip edges)
-        tests = filter (\(x,y) -> x/=y) $ fst $
-          foldl (\(acc,n) u -> ((zip (drop n verts) (repeat u)) ++ acc,n+1)) ([],0) verts 
+connectivityTest edges = minimum flows
+  where fedges = fedgesForConn edges
+        tests = nub $ foldl (\acc (x,y) -> (x,(-1)*y):(y,(-1)*x):acc) [] edges
         flows = foldl (\acc (s,t) -> (connectivityTest' s t fedges):acc) [] tests
+
 
 edgesFromText :: String -> [Edge]
 edgesFromText text =
